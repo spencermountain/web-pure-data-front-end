@@ -11,9 +11,20 @@
     
 
 
-          <span class="checkbox"><input type="checkbox"  style="width:100px; height:100px;"/></span>
+          <span class="checkbox"><input type="checkbox"  id="<%= obj.id %>" style="width:100px; height:100px;"/></span>
       
 
 
-
+<script>
+$(document).ready(function() {
+ $("#<%= obj.id %>").click(function(){
+   if($(this).is(':checked') ){
+     pd._graph.objects[1].sendmessage(0, 1);
+   }
+   else{   
+     pd._graph.objects[1].sendmessage(0, 0);
+   }
+ });
+});
+</script>
 

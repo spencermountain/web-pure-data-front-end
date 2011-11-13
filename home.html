@@ -15,8 +15,7 @@
 	
 <script>
 $(document).ready(function() {
-
-var pd;
+pd=null;
 reload();
 
 $("#reload").click(function(){
@@ -38,6 +37,7 @@ function reload(){
    pd = new Pd(44100, 4410, true);
    pd.loadfromstring(patch, pd.stop);
 
+
 		  //setup the pdobject for rendering
       var html='';
 		  for (var o in pd._graph.objects) {
@@ -48,7 +48,9 @@ function reload(){
         html+=makeobject(pd._graph.objects[o]);
 		  }
 
-    console.log(pd)
+
+
+
     
   $("#stage").html(html);
 
@@ -100,23 +102,27 @@ function set_title(pdobj){
 </div>
 
 <div style="position:absolute; top:200px; left:600px;">
-<textarea id="source" style="height:400px; width:500px;">#N canvas 67 83 634 372 12;
-#X obj 67 285 + 1;
-#X obj 32 284 int;
-#X floatatom 32 317 4 0 0 0 - - -;
-#X obj 32 243 metro 500;
-#X obj 5 6 metro;
-#X floatatom 81 220 4 0 0 0 - - -;
-#X text 104 282 These objects work together as a counter. For each
-bang sent by metro \, the output adds 1;
-#X obj 32 103 loadbang;
-#X msg 32 125 1;
-#X text 92 135 nonzero number or "bang" to start;
-#X msg 49 172 0;
-#X msg 38 148 bang;
-#X msg 49 194 stop;
+<textarea id="source" style="height:400px; width:500px;">
+#N canvas 246 169 450 300 10;
+#X obj 152 166 print;
+#X obj 125 97 loadbang;
+#X connect 1 0 0 0;
 </textarea>
 <input type="submit" id="reload" value="load"/>
 <input type="submit" id="dump" value="dump"/>
 </div>
+
+<div style="position:absolute; bottom:0px">
+            <input type='button' value='play' onclick='javascript: pd.play();' />
+            <input type='button' value='pause' onclick='javascript: pd.stop();' />
+            <br/>
+            console:
+            <br/>
+            <span id='golden'>
+            </span>
+            <pre id='console' style="font-size:12px;">
+            </pre>
+            <span class="debug" id='debug'>
+            </span>
+            </div>
                             </body>

@@ -198,7 +198,6 @@ var Pd = function Pd(sampleRate, bufferSize, debug, arrayType) {
 				this._graph.objects[o].init();
 		}
 		
-
 		// output a message with our graph
 		this.debug("Graph:");
 		this.debug(this._graph);
