@@ -47,6 +47,8 @@ var Pd = function Pd(sampleRate, bufferSize, debug, arrayType) {
 		// an array of all of the end-points of the dsp graph
 		// (like dac~ or print~ or send~ or outlet~)
 		"endpoints": [],
+		//information about individual pd patches/windows, {x,y,width,height,label}
+		"windows":[]
 	};
 	
 	// callback which should fire once the entire patch is loaded
@@ -60,7 +62,8 @@ var Pd = function Pd(sampleRate, bufferSize, debug, arrayType) {
 	var messages_re = /\\{0,1};/
 	// regular expression for delimiting comma separated messages
 	var parts_re = /\\{0,1},/
-	
+	//a log to remember which abstraction an object is on
+	var currentwindow;
 	/********************* "Public" methods ************************/
 	
 	/** Initiate a load of a Pd file **/
@@ -110,9 +113,16 @@ var Pd = function Pd(sampleRate, bufferSize, debug, arrayType) {
 		while (pdline = lines_re.exec(txt)) {
 			// split this found line into tokens (on space and line break)
 			var tokens = pdline[1].split(/ |\r\n?|\n/);
-			this.debug("" + tokens);
-			// if we've found a create token
-			if (tokens[0] == "#X") {
+			//this.debug("" + tokens);
+			
+			if (tokens[0] == "#N") {
+			  //generate the patch abstractions
+			  if(this._graph.windows.length==0){var label='parent';}
+			  else{var label=tokens[6];}
+			  this._graph.windows.push( {label:label, x:tokens[2], y:tokens[3], width:tokens[4], height:tokens[5]})
+			  currentwindow=this._graph.windows[this._graph.windows.length-1];//the following objects belong to this window
+			}			
+			else if (tokens[0] == "#X") {// if we've found a create token
 				// is this an obj instantiation
 				if (tokens[1] == "obj" || tokens[1] == "msg"|| tokens[1] == "text") {
 					var proto = "";
@@ -175,6 +185,9 @@ var Pd = function Pd(sampleRate, bufferSize, debug, arrayType) {
 					// end the current table
 					lastTable = null;
 				}
+				//log which abstraction this object lives in
+				obj.window=currentwindow;
+				
 			} else if (tokens[0] == "#A") {
 				// reads in part of an array/table of data, starting at the index specified in this line
 				// name of the array/table comes from the the "#X array" and "#X restore" matches above
@@ -675,6 +688,8 @@ var PdObjects = {
 			this.value = parseFloat(this.args[5]);
 			if (isNaN(this.value))
 				this.value = 0;
+			this.minimum=this.args[6];
+      this.maximum=this.args[5];			
 		},
 		"message": function(inletnum, message) {
 			if (inletnum == 0) {
@@ -2612,7 +2627,7 @@ var PdObjects = {
 		"description":"toggle between 1 and 0",
 		"outletTypes": ["message"],
 		"init": function() {
-			this.state=0;
+		  	this.state=this.args[6];
 		},
 		"message": function(inletnum, message) {
 			var newnum=parseFloat(message);
@@ -3362,15 +3377,70 @@ var PdObjects = {
 	
 	//text comments
 		"text": {
-		"defaultinlets":0,
-	        "defaultoutlets":0,
-	        "description":"passive comments or instructions",
-		"outletTypes": ["message"],
-		"init": function() {
-		},
-		"message": function(inletnum, message) {
-			}
-		}
+	     "defaultinlets":0,
+        "defaultoutlets":0,
+        "description":"passive comments or instructions",
+		    "outletTypes": ["message"],
+		    "init": function() {
+		    },
+		    "message": function(inletnum, message) {
+			    }
+	 },
+	 
+	 	//colours on the canvas
+		"cnv": {
+	     "defaultinlets":0,
+        "defaultoutlets":0,
+        "description":"create a graphical part",
+		    "outletTypes": ["message"],
+		    "init": function() {
+		        this.width=this.args[6];
+		        this.height=this.args[7];
+		        this.label=this.args[10];
+		    },
+		    "message": function(inletnum, message) {
+			    }
+	 },
+	 
+	 
+	//abstraction inputs
+		"inlet": {
+	     "defaultinlets":0,
+        "defaultoutlets":1,
+        "description":"recieve message for abstraction",
+		    "outletTypes": ["message"],
+		    "init": function() {
+		    },
+		    "message": function(inletnum, message) {
+		        this.sendmessage(0, message);
+			    }
+	 },
+	 
+	//abstraction outputs
+		"outlet": {
+	     "defaultinlets":1,
+        "defaultoutlets":0,
+        "description":"send message from an abstraction",
+		    "outletTypes": ["message"],
+		    "init": function() {
+		    },
+		    "message": function(inletnum, message) {
+		        this.sendmessage(0, message);
+			    }
+	 },
+	 
+	 	//abstraction subpatch
+		"pd": {
+	     "defaultinlets":0,
+        "defaultoutlets":0,
+        "description":"create a subpatch as abstraction",
+		    "outletTypes": ["message"],
+		    "init": function() {
+		    },
+		    "message": function(inletnum, message) {
+		        this.sendmessage(0, message);//
+			    }
+	 }
 	
 		
 };

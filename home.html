@@ -113,12 +113,19 @@ function findbyid(id){
 
 <div style="position:absolute; top:200px; left:600px;">
 <textarea id="source" style="height:400px; width:500px;">
-#N canvas 246 169 450 300 10;
-#X obj 152 166 print;
-#X obj 125 97 tgl;
-#X msg 229 112 hi mommy;
-#X connect 1 0 0 0;
-#X connect 2 0 0 0;
+#N canvas 67 83 450 300 10;
+#X obj 116 72 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#N canvas 322 248 450 300 fun 1;
+#X obj 146 25 inlet;
+#X obj 136 147 outlet;
+#X msg 144 76 hio;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X restore 132 107 pd fun;
+#X obj 131 152 print;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
 </textarea>
 <input type="submit" id="reload" value="load"/>
 <input type="submit" id="dump" value="dump"/>
