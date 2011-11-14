@@ -51,7 +51,7 @@
         </tr>
         
         <Tr class="title"><Td>
-          <span class="border draggable ui-widget-content" id="<%= obj.id %>"><%= obj.title %></span>
+          <span class="border draggable" id="<%= obj.id %>"><%= obj.title %></span>
         </td></tr>
         
          <Tr class="outlet">
@@ -70,5 +70,25 @@
 
 
 
+<script>
+$(document).ready(function() {
+
+var id="<%= obj.id %>";
+
+ $("#<%= obj.id %>").click(function(){
+    console.log("<%= obj.title %>") 
+    
+    var obj=findbyid(id);
+     if(obj){
+       obj.sendmessage(0, "booooooom");   
+    //  obj.message(inlet, msg){
+       //console.log(msg+'333333333333333333')
+     // }
+      
+     }
+    
+ });
+});
+</script>
 
 

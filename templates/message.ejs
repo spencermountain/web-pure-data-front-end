@@ -14,11 +14,23 @@
     </style>
     
 
-          <span class="message" style="left:<%= obj.x %>px; top:<%= obj.y %>px;">
-            <%= obj.title %>
+          <span class="message draggable" style="left:<%= obj.x %>px; top:<%= obj.y %>px;"  id="<%= obj.id %>">
+            <%= obj.title %>ooooooo
           </span>
 
 
-
-
+<script>
+$(document).ready(function() {
+var id="<%= obj.id %>";
+ $("#"+id).click(function(){
+    var msg="<%= obj.title %>";     
+     var obj=findbyid(id);
+     if(obj){
+       obj.sendmessage(0, msg);   
+     }
+     else{console.log('obj not found man')
+     }
+ });
+});
+</script>
 

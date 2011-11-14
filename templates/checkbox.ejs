@@ -1,29 +1,33 @@
 
   <style>
 .checkbox{
+ position:absolute;
  left:<%= obj.x %>px;
  top:<%= obj.y %>px; 
- width:100px; 
- height:100px;
-
 }
     </style>
     
 
 
-          <span class="checkbox"><input type="checkbox"  id="<%= obj.id %>" style="width:100px; height:100px;"/></span>
+          <span class="checkbox draggable"><input type="checkbox"  id="<%= obj.id %>" style=""/></span>
       
 
 
 <script>
 $(document).ready(function() {
  $("#<%= obj.id %>").click(function(){
-   if($(this).is(':checked') ){
+   var id="<%= obj.id %>";
+   var obj=findbyid(id);
+   
+   if($(this).is(':checked') ){   
+     obj.state=1;
      pd._graph.objects[1].sendmessage(0, 1);
    }
    else{   
+     obj.state=0;
      pd._graph.objects[1].sendmessage(0, 0);
    }
+   
  });
 });
 </script>

@@ -49,7 +49,7 @@ function reload(){
 		  }
 
 
-
+pd.addlistener('fun', pd._graph.objects[0])
 
     
   $("#stage").html(html);
@@ -73,10 +73,10 @@ function reload(){
 
 function makeobject(pdobj){
   //console.log(pdobj);   
-   if(pdobj.type=="loadbang"){ 
+   if(pdobj.type=="tgl"){ 
     return new EJS({url: './templates/checkbox.ejs'}).render({obj:pdobj});
    }
-    if(pdobj.type=="text"){ 
+    if(pdobj.type=="msg"){ 
     return new EJS({url: './templates/message.ejs'}).render({obj:pdobj});
    }
    //generic object
@@ -86,13 +86,23 @@ function makeobject(pdobj){
 
 //what to actually display
 function set_title(pdobj){
-  if(pdobj.type=="text"){
+  if(pdobj.type=="msg"){
     return pdobj.title=pdobj.args.slice(4, pdobj.args.length).join(" ");  
   }
   return pdobj.args[4];
 }
 
 });
+
+function findbyid(id){
+    for(var i in pd._graph.objects){
+      if( pd._graph.objects[i].id==id){
+      return  pd._graph.objects[i];
+      }
+    }
+  return {};
+}
+
 </script>
 
 </head>
@@ -105,8 +115,10 @@ function set_title(pdobj){
 <textarea id="source" style="height:400px; width:500px;">
 #N canvas 246 169 450 300 10;
 #X obj 152 166 print;
-#X obj 125 97 loadbang;
+#X obj 125 97 tgl;
+#X msg 229 112 hi mommy;
 #X connect 1 0 0 0;
+#X connect 2 0 0 0;
 </textarea>
 <input type="submit" id="reload" value="load"/>
 <input type="submit" id="dump" value="dump"/>
