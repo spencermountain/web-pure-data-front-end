@@ -1,0 +1,56 @@
+
+	<script src="./ui/jquery.js"></script>
+	<script type="text/javascript" src="jquery.svg.js"></script>
+	<script>
+
+$(document).ready(function() {
+var sketchpad = null; 
+var start = null; 
+var line = null; 
+ 
+$('#svgsketch').svg({onLoad: function(svg) { 
+        sketchpad = svg; 
+        var surface = svg.rect(0, 0, '100%', '100%', {id: 'surface', fill: 'grey'}); 
+       // $(".let").mousedown(startDrag).mousemove(dragging).mouseup(endDrag); 
+       $(surface).mousedown(startDrag).mousemove(dragging).mouseup(endDrag); 
+        
+    } 
+}); 
+ 
+// Remember where we started 
+function startDrag(event) { 
+    start = {X: event.clientX , Y: event.clientY }; 
+    event.preventDefault(); 
+} 
+ 
+// Provide feedback as we drag 
+function dragging(event) { 
+    if (!start) { 
+        return; 
+    } 
+    if (!line) { 
+        line = sketchpad.line(0, 0, 0, 0, {fill: 'none', stroke: '#c0c0c0', strokeWidth: 1}); 
+        $(line).mouseup(endDrag); 
+    } 
+console.log('eee')
+    sketchpad.change(line, {x1: start.X, 
+        y1:  start.Y, 
+        x2: event.clientX, 
+        y2: event.clientY}); 
+    event.preventDefault(); 
+} 
+ 
+// Draw where we finish 
+function endDrag(event) { 
+    if (!start) { 
+        return; 
+    } 
+    start = null; 
+    event.preventDefault(); 
+} 
+ 
+
+})
+</script>
+<div id="svgsketch" style="position:absolute; left;0px; top:0px;width:500px; height:500px;"></div>
+<div class="let" style=" position:absolute; left;20px; top:90px; background:green">eeeeeeeeeeeeeeeeeee</div>

@@ -9,7 +9,7 @@
     a.let{
       position:relative;
       background:black;
-      font-size:1px;    
+      font-size:10px;    
       height:1px;       
     }
     .inlet{
@@ -43,14 +43,14 @@
                     <table style="width:100%;">
                       <tr class="letgroup">
                        <% for(var i in obj.inlets){ %>
-                          <td><a class="let">&nbsp;</a></td>
+                          <td><a class="let">&nbsp;w</a></td>
                         <% } %>
                       </tr>
                     </table>
          </td>     
         </tr>
         
-        <Tr class="title"><Td>
+        <Tr class="title" title="<%= obj.description %>"><Td>
           <span class="border draggable" id="<%= obj.id %>"><%= obj.title %></span>
         </td></tr>
         
@@ -58,8 +58,8 @@
          <Td>   
            <table style="width:100%;">
             <tr class="letgroup">
-                <% for(var i in obj.inlets){ %>
-                  <td><a class="let">&nbsp;</a></td>
+                <% for(var i in obj.outlets){ %>
+                  <td><a href="#" class="let">&nbsp;w</a></td>
                 <% } %>
             </tr>
           </table>

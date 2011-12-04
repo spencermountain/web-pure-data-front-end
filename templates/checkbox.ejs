@@ -18,14 +18,13 @@ $(document).ready(function() {
  $("#<%= obj.id %>").click(function(){
    var id="<%= obj.id %>";
    var obj=findbyid(id);
-   
    if($(this).is(':checked') ){   
      obj.state=1;
-     pd._graph.objects[1].sendmessage(0, 1);
+     obj.sendmessage(0, 1);
    }
    else{   
      obj.state=0;
-     pd._graph.objects[1].sendmessage(0, 0);
+     obj.sendmessage(0, 0);
    }
    
  });

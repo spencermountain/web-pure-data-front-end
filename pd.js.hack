@@ -7,15 +7,9 @@
 	(Basically if you provide this software via the network you need to make the source code available, but read the license for details).
 ***/
 
-var Pd = function Pd(sampleRate, bufferSize, debug) {
-	// use a Float32Array if we have it
-	if (typeof Float32Array != "undefined") {
-		this.arrayType = Float32Array;
-		this.arraySlice = function (b, i) { return b.subarray(i) };
-	} else {
-		this.arrayType = Array;
-		this.arraySlice = function (b, i) { return b.slice(i) };
-	}
+var Pd = function Pd(sampleRate, bufferSize, debug, arrayType) {
+	// what type of javascript array do we want to use?
+	this.arrayType = arrayType || Array; // Float32Array
 	// whether we are in debug mode (more verbose output
 	this.debugMode = debug;
 	// set my own sample rate
@@ -33,7 +27,8 @@ var Pd = function Pd(sampleRate, bufferSize, debug) {
 	// the audio-filling interval id
 	this.interval = -1;
 	// if there is any overflow writing to the hardware buffer we store it here
-	this.overflow = null;
+	this.overflow = new this.arrayType(0);
+	// arrays of receivers which are listening for messages
 	// keys are receiver names
 	this.listeners = {};
 	// arrays of callbacks which are scheduled to run at some point in time
@@ -52,6 +47,8 @@ var Pd = function Pd(sampleRate, bufferSize, debug) {
 		// an array of all of the end-points of the dsp graph
 		// (like dac~ or print~ or send~ or outlet~)
 		"endpoints": [],
+		//information about individual pd patches/windows, {x,y,width,height,label}
+		"windows":[]
 	};
 	
 	// callback which should fire once the entire patch is loaded
@@ -65,7 +62,8 @@ var Pd = function Pd(sampleRate, bufferSize, debug) {
 	var messages_re = /\\{0,1};/
 	// regular expression for delimiting comma separated messages
 	var parts_re = /\\{0,1},/
-	
+	//a log to remember which abstraction an object is on
+	var currentwindow;
 	/********************* "Public" methods ************************/
 	
 	/** Initiate a load of a Pd file **/
@@ -115,11 +113,18 @@ var Pd = function Pd(sampleRate, bufferSize, debug) {
 		while (pdline = lines_re.exec(txt)) {
 			// split this found line into tokens (on space and line break)
 			var tokens = pdline[1].split(/ |\r\n?|\n/);
-			this.debug("" + tokens);
-			// if we've found a create token
-			if (tokens[0] == "#X") {
+			//this.debug("" + tokens);
+			
+			if (tokens[0] == "#N") {
+			  //generate the patch abstractions
+			  if(this._graph.windows.length==0){var label='parent';}
+			  else{var label=tokens[6];}
+			  this._graph.windows.push( {label:label, x:tokens[2], y:tokens[3], width:tokens[4], height:tokens[5]})
+			  currentwindow=this._graph.windows[this._graph.windows.length-1];//the following objects belong to this window
+			}			
+			else if (tokens[0] == "#X") {// if we've found a create token
 				// is this an obj instantiation
-				if (tokens[1] == "obj" || tokens[1] == "msg" || tokens[1] == "text") {
+				if (tokens[1] == "obj" || tokens[1] == "msg"|| tokens[1] == "text") {
 					var proto = "";
 					// if this is a message object
 					if (tokens[1] == "msg") {
@@ -180,6 +185,9 @@ var Pd = function Pd(sampleRate, bufferSize, debug) {
 					// end the current table
 					lastTable = null;
 				}
+				//log which abstraction this object lives in
+				obj.window=currentwindow;
+				
 			} else if (tokens[0] == "#A") {
 				// reads in part of an array/table of data, starting at the index specified in this line
 				// name of the array/table comes from the the "#X array" and "#X restore" matches above
@@ -309,54 +317,47 @@ var Pd = function Pd(sampleRate, bufferSize, debug) {
 		/** Checks if the hardware buffer is hungry for more **/
 		this.hungry = function() {
 			// are we a few buffers ahead?
-			return (this.el.mozCurrentSampleOffset() + this.sampleRate / 2 - this.lastWritePosition) / this.bufferSize;
+			return this.lastWritePosition < this.el.mozCurrentSampleOffset() + this.sampleRate / 2;
 		}
 		
 		/** Fills up the hardware buffer with the data from this.output **/
 		this.fillbuffer = function(buffer) {
 			// actually write the audio to the buffer
 			var written = this.el.mozWriteAudio(buffer);
+			if (written < buffer.length) {
+				// copy the data from all endpoints into the audio output
+				this.overflow = buffer.slice(written);
+			} else {
+				this.overflow.length = 0;
+			}
 			// update our last write position so we know where we're up to
 			this.lastWritePosition += written;
-			// check for unwritten data
-			if (written < buffer.length) {
-				// give back an array of unwritten data
-				if (this.overflow == null)
-					this.overflow = buffer;
-				return false;
-			} else {
-				// no overflow detected
-				this.overflow = null;
-				return true;
-			}
+			return this.overflow.length;
 		}
 	// if not just write the output frames to the console
 	} else {
+		var runs = 0;
 		this.hungry = function() {
-			return 5 * this.blocksize;
+			this.debug("Frame: " + runs++);
+			return runs < 5;
 		}
 		
 		this.fillbuffer = function(buffer) {
 			// non-audio version, output the frame as text
 			this.log(buffer);
-			return false;
 		}
 	}
 	delete audioTest;
 	
 	/** Run each frame - check and fill up the buffer, as needed **/
 	this.write = function() {
-		// we had some overflow last time, first append this to the buffer
-		if (this.overflow != null) {
-			this.fillbuffer(this.arraySlice(this.overflow, this.lastWritePosition % this.bufferSize));
-		}
+		var count = 0;
 		
-		// how many blocks we should generate
-		var howmany = Math.ceil(this.hungry());
-		
-		if (this.overflow == null && howmany > 0) {
-			// while we still need to add more to the buffer, do it - should usually do about two loops
-			for (var block=0; block<howmany; block++) {
+		// while we still need to add more to the buffer, do it - should usually do about two loops
+		while(this.hungry() && count < 100) {
+			if (this.overflow.length) {
+				this.fillbuffer(this.overflow);
+			} else {
 				// run any pending scheduled callbacks in this frame
 				// keep doing so until there are no scheduled callbacks
 				var scheduled = [];
@@ -389,11 +390,19 @@ var Pd = function Pd(sampleRate, bufferSize, debug) {
 					// dac~ objects will add their output to this.output
 					this.tick(this._graph.endpoints[e]);
 				}
-				// write the dsp data we have computed to the audio buffer
+				// if we have some overflow, write that first
 				this.fillbuffer(this.output);
+				// check we haven't run a ridiculous number of times
+				count++;
 				// increase the frame count
 				this.frame += 1;
 			}
+		}
+		
+		// things are not going well. stop the audio.
+		if (count >= 100) {
+			this.log("Overflowed 100 write() calls - your patch is probably too heavy.");
+			this.stop();
 		}
 	}
 	
@@ -423,7 +432,9 @@ var Pd = function Pd(sampleRate, bufferSize, debug) {
 			this.el = new Audio();
 			if (this.el.mozSetup) {
 				// initialise our audio output element
-				this.el.mozSetup(2, this.sampleRate);
+				this.el.mozSetup(2, this.sampleRate, 1);
+				// initial buffer fill
+				this.write();
 				// start a regular buffer fill
 				this.interval = setInterval(function() { me.write(); }, Math.floor(this.bufferSize / this.sampleRate));
 			} else {
@@ -677,6 +688,8 @@ var PdObjects = {
 			this.value = parseFloat(this.args[5]);
 			if (isNaN(this.value))
 				this.value = 0;
+			this.minimum=this.args[6];
+      this.maximum=this.args[5];			
 		},
 		"message": function(inletnum, message) {
 			if (inletnum == 0) {
@@ -2614,7 +2627,7 @@ var PdObjects = {
 		"description":"toggle between 1 and 0",
 		"outletTypes": ["message"],
 		"init": function() {
-			this.state=0;
+		  	this.state=this.args[6];
 		},
 		"message": function(inletnum, message) {
 			var newnum=parseFloat(message);
@@ -3364,15 +3377,70 @@ var PdObjects = {
 	
 	//text comments
 		"text": {
-		"defaultinlets":0,
-	        "defaultoutlets":0,
-	        "description":"passive comments or instructions",
-		"outletTypes": ["message"],
-		"init": function() {
-		},
-		"message": function(inletnum, message) {
-			}
-		}
+	     "defaultinlets":0,
+        "defaultoutlets":0,
+        "description":"passive comments or instructions",
+		    "outletTypes": ["message"],
+		    "init": function() {
+		    },
+		    "message": function(inletnum, message) {
+			    }
+	 },
+	 
+	 	//colours on the canvas
+		"cnv": {
+	     "defaultinlets":0,
+        "defaultoutlets":0,
+        "description":"create a graphical part",
+		    "outletTypes": ["message"],
+		    "init": function() {
+		        this.width=this.args[6];
+		        this.height=this.args[7];
+		        this.label=this.args[10];
+		    },
+		    "message": function(inletnum, message) {
+			    }
+	 },
+	 
+	 
+	//abstraction inputs
+		"inlet": {
+	     "defaultinlets":0,
+        "defaultoutlets":1,
+        "description":"recieve message for abstraction",
+		    "outletTypes": ["message"],
+		    "init": function() {
+		    },
+		    "message": function(inletnum, message) {
+		        this.sendmessage(0, message);
+			    }
+	 },
+	 
+	//abstraction outputs
+		"outlet": {
+	     "defaultinlets":1,
+        "defaultoutlets":0,
+        "description":"send message from an abstraction",
+		    "outletTypes": ["message"],
+		    "init": function() {
+		    },
+		    "message": function(inletnum, message) {
+		        this.sendmessage(0, message);
+			    }
+	 },
+	 
+	 	//abstraction subpatch
+		"pd": {
+	     "defaultinlets":0,
+        "defaultoutlets":0,
+        "description":"create a subpatch as abstraction",
+		    "outletTypes": ["message"],
+		    "init": function() {
+		    },
+		    "message": function(inletnum, message) {
+		        this.sendmessage(0, message);//
+			    }
+	 }
 	
 		
 };
@@ -3433,4 +3501,5 @@ function MakeRequest(url, caller)
 	http_request.open("GET", url, true);
 	http_request.send(null);
 };
+
 
