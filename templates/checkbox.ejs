@@ -1,20 +1,20 @@
 
-  <style>
-.checkbox{
- position:absolute;
- left:<%= obj.x %>px;
- top:<%= obj.y %>px; 
-}
-    </style>
-    
-
-
-          <span class="checkbox draggable"><input type="checkbox"  id="<%= obj.id %>" style=""/></span>
-      
-
+  <span class="checkbox draggable" style="left:<%= obj.x %>px;  top:<%= obj.y %>px; "><input type="checkbox"  id="<%= obj.id %>" style=""/></span>
 
 <script>
 $(document).ready(function() {
+   var id="<%= obj.id %>";
+   var obj=findbyid(id);
+
+//obj.pd.addlistener(id, this);
+
+obj.pd.receive(id, function(msg){
+
+$("#"+id).prop("checked", msg);
+
+console.log(msg)
+})
+
  $("#<%= obj.id %>").click(function(){
    var id="<%= obj.id %>";
    var obj=findbyid(id);
@@ -25,8 +25,7 @@ $(document).ready(function() {
    else{   
      obj.state=0;
      obj.sendmessage(0, 0);
-   }
-   
+   }   
  });
 });
 </script>

@@ -1,0 +1,33 @@
+	<style>
+	.view_slide{background:black; opacity:.4; color:white;}
+	</style>
+	
+	<script>
+	$(function() {
+	
+	   var id="<%= obj.id %>";
+   var obj=findbyid(id);
+   console.log(obj)
+		$( "#slider" ).slider({ 
+		orientation: 'vertical' ,  		
+		slide: function( event, ui ) {
+				    $( ".view_slide" ).css('display','inline').html( ui.value );
+				    obj.sendmessage(0, ui.value);
+			},
+			stop:function(event, ui){
+			   $( ".view_slide" ).fadeOut('slow');
+			},
+			start:function(event, ui){
+			   $( ".view_slide" ).fadeIn('fast');
+			}
+		}
+		);
+		
+	});
+	</script>
+
+<span style="max-width:200px;left:<%= obj.x %>px;   top:<%= obj.y %>px; ">hihi
+<div id="slider" style="max-width:200px; "></div>
+<span class="view_slide"></span>
+</span>
+

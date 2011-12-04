@@ -149,7 +149,7 @@ var Pd = function Pd(sampleRate, bufferSize, debug) {
 					// run the pre-init function which runs on an object before graph setup
 					if (obj.preinit)
 						obj.preinit();
-				} else if (tokens[1] == "connect") {
+				} else if (tokens[1] == "connect") { console.log('22222222222')
 					// connect objects together
 					var destination = this._graph.objects[parseInt(tokens[4])];
 					var destination_inlet = parseInt(tokens[5]);
@@ -2360,6 +2360,23 @@ var PdObjects = {
 			this.sendmessage(0, "bang");
 			}
 		},
+		
+			//vertical slider object
+	"vsl": {
+		"defaultinlets":1,
+			"defaultoutlets":1,
+			"description":"manually adjust a number",
+		"outletTypes": ["message"],
+		"init": function() {
+		  this.value=0;
+			var me = this;
+		},
+		"message": function(inletnum, message) {
+			this.value=parseInt(message)
+			console.log('hi')
+			this.sendmessage(0, this.value);
+			}
+		},
 	
 	
 	//output 1 if inputs are equivalent
@@ -2632,8 +2649,8 @@ var PdObjects = {
 			else{
 				this.state=1;
 				this.sendmessage(0, "1");
-			}
-			
+			}			
+		  this.pd.send(this.id, this.state)
 		}
 			
 	},	

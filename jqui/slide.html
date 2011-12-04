@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" >
+	<title>jQuery UI Slider - Default functionality</title>
+	<link rel="stylesheet" href="./ui/lightness.css">
+	<script src="./ui/jquery-1.6.2.min.js"></script>
+	<script src="./ui/jquery.ui.core.js"></script>
+	<script src="./ui/jquery.ui.widget.js"></script>
+	<script src="./ui/jquery.ui.mouse.js"></script>
+	<script src="./ui/jquery.ui.slider.js"></script>
+	<style>
+	.view_slide{background:black; opacity:.4; color:white;}
+	</style>
+	<script>
+	$(function() {
+		$( "#slider" ).slider({ 
+		orientation: 'vertical' ,  		
+		slide: function( event, ui ) {
+					if(ui.value !=$( ".view_slide" ).html()){
+				    $( ".view_slide" ).css('display','inline').html( ui.value );
+				  }
+			},
+			stop:function(event, ui){
+			   $( ".view_slide" ).fadeOut('slow');
+			}
+			start:function(event, ui){
+			   $( ".view_slide" ).fadeIn('fast');
+			}
+		}
+		);
+		
+	});
+	</script>
+</head>
+<body>
+
+<span>
+<div id="slider" style="max-width:200px;"></div>
+<span class="view_slide"></span>
+</span>
+
+</body>
+</html>

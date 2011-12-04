@@ -11,25 +11,41 @@
 	<script src="./ui/jquery.ui.draggable.js"></script>
 	<script src="./ui/jquery.ui.droppable.js"></script>
 	<script src="./ui/jquery.ui.selectable.js"></script>
-	
+	<script src="./ui/jquery.ui.slider.js"></script>
+	<link rel="stylesheet" href="./ui/lightness.css">
 	<script type="text/javascript" src="jquery.svg.js"></script>
 
 	
 <script>
 $(document).ready(function() {
+var zoom=1;
 pd=null;
 reload();
 
 
 var demos={
 noise:"#N canvas 239 236 450 300 12;\n\n#X obj 10 6 noise~;\n\n#X obj 9 35 dac~;\n\n#X connect 0 0 1 0;\n\n#X connect 0 0 1 1;\n",
+osc:"#N canvas 339 125 450 300 10;\n#X obj 14 11 osc~ 440;\n#X obj 14 32 dac~;\n#X connect 0 0 1 0;\n#X connect 0 0 1 1;\n",
+
+
 loadbang:"#N canvas 90 62 450 300 10;\n#X obj 21 19 loadbang;\n#X msg 21 40 hello foo bar sheep goat;\n#X obj 21 61 print;\n#X connect 0 0 1 0;\n#X connect 1 0 2 0;\n",
 mtof:"#N canvas 641 66 450 300 12;\n#X obj 56 76 mtof;\n#X obj 56 101 print;\n#X obj 20 -18 loadbang;\n#X msg 92 42 0;\n#X msg 128 41 -10;\n#X msg 20 43 57;\n#X msg 55 42 123;\n#X obj 20 10 t b b b b b;\n#X msg 166 40 fish;\n#X connect 0 0 1 0;\n#X connect 2 0 7 0;\n#X connect 3 0 0 0;\n#X connect 4 0 0 0;\n#X connect 5 0 0 0;\n#X connect 6 0 0 0;\n#X connect 7 0 5 0;\n#X connect 7 1 6 0;\n#X connect 7 2 3 0;\n#X connect 7 3 4 0;\n#X connect 7 4 8 0;\n#X connect 8 0 0 0;\n",
 moses:"#N canvas 78 33 450 300 12;\n #X obj 44 -11 moses 5;\n #X obj 43 -93 loadbang;\n #X obj 43 -68 t b b b b;\n #X msg 43 -43 5;\n #X msg 115 -42 0;\n #X msg 150 -42 -3;\n #X msg 78 -43 9.2;\n #X obj 43 17 print left;\n #X obj 130 16 print right;\n #X obj 119 -91 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1 -1;\n #X connect 0 0 7 0;\n #X connect 0 1 8 0;\n #X connect 1 0 2 0;\n #X connect 2 0 3 0;\n #X connect 2 1 6 0;\n #X connect 2 2 4 0;\n #X connect 2 3 5 0;\n #X connect 3 0 0 0;\n #X connect 4 0 0 0;\n #X connect 5 0 0 0;\n #X connect 6 0 0 0;\n #X connect 9 0 2 0;\n",
+
+
+metro:"#N canvas 90 62 450 300 10;\n#X obj 21 19 tgl;\n#X obj 21 40 metro 1000;\n#X obj 21 61 print;\n#X connect 0 0 1 0;\n#X connect 1 0 2 0;\n",
 metros:"#N canvas 248 161 381 243 10;\n #X obj 15 10 loadbang;\n #X obj 74 10 loadbang;\n #X obj 15 31 metro;\n #X obj 74 31 metro 2;\n #X obj 134 10 loadbang;\n #X obj 134 31 metro 3;\n #X obj 208 10 bang~;\n #X msg 272 26 \;\n pd dsp 1 \;\n;\n #X obj 272 4 loadbang;\n #X obj 208 31 f;\n #X obj 234 31 + 1;\n #X msg 208 94 0;\n #X obj 134 73 spigot 1;\n #X obj 74 73 spigot 1;\n #X obj 15 73 spigot 1;\n #X obj 208 73 t b b;\n #X msg 240 94 \;\n pd dsp 0 \;\n;\n #X obj 272 64 block~ 128 0 0;\n #X msg 15 52 bang;\n #X msg 74 52 bang;\n #X msg 134 52 bang;\n #X obj 15 143 print one;\n #X obj 74 143 print two;\n #X obj 134 143 print three;\n #X obj 208 52 sel 3;\n #X connect 0 0 2 0;\n #X connect 1 0 3 0;\n #X connect 2 0 18 0;\n #X connect 3 0 19 0;\n #X connect 4 0 5 0;\n #X connect 5 0 20 0;\n #X connect 6 0 9 0;\n #X connect 8 0 7 0;\n #X connect 9 0 10 0;\n #X connect 9 0 24 0;\n #X connect 10 0 9 1;\n #X connect 11 0 13 1;\n #X connect 11 0 12 1;\n #X connect 11 0 14 1;\n #X connect 12 0 23 0;\n #X connect 13 0 22 0;\n #X connect 14 0 21 0;\n #X connect 15 0 11 0;\n #X connect 15 1 16 0;\n #X connect 18 0 14 0;\n #X connect 19 0 13 0;\n #X connect 20 0 12 0;\n #X connect 24 0 15 0;\n",
-osc:"#N canvas 339 125 450 300 10;\n#X obj 14 11 osc~ 440;\n#X obj 14 32 dac~;\n#X connect 0 0 1 0;\n#X connect 0 0 1 1;\n",
-tgl:"#N canvas 274 140 785 486 10;\n#X obj 552 171 tgl;\n#X obj 293 414 print;\n#X connect 0 0 1 0;",
-metro:"#N canvas 274 140 785 486 10;\n#X obj 293 414 print;\n#X obj 229 153 metro 1000;\n#X obj 217 59 loadbang;\n#X obj 228 102 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0\n1;\n#X connect 1 0 0 0;\n#X connect 2 0 3 0;\n#X connect 3 0 1 0;"
+
+
+
+tgl:"#N canvas 90 62 450 300 10;\r\n#X obj 21 19 tgl;\r\n#X obj 21 61 print;\r\n#X connect 0 0 1 0;",
+toggles:"#N canvas 90 62 450 300 10;\r\n#X obj 21 19 tgl;\r\n#X obj 21 39 tgl;\r\n#X obj 21 61 print;\r\n#X connect 0 0 1 0;\r\n#X connect 1 0 2 0;\r\n#X connect 2 0 3 0;",
+
+slide:"#N canvas 67 83 450 300 10;\n#X obj 154 27 vsl 15 128 0 127 0 0 empty empty empty 0 -9 0 10 -262144 -1 -1 0 1;\n#X obj 161 255 print;\n#X connect 0 0 1 0;",
+
+}
+for(var i in demos){
+  $("#showdemos").append('<div class="demo">'+i+'</div>')
 }
 
 
@@ -68,8 +84,8 @@ function reload(){
 		  //setup the pdobject for rendering
       var html='';
 		  for (var o in pd._graph.objects) {
-		    pd._graph.objects[o].x=pd._graph.objects[o].args[2];
-		    pd._graph.objects[o].y=pd._graph.objects[o].args[3];	
+		    pd._graph.objects[o].x=pd._graph.objects[o].args[2]*zoom;
+		    pd._graph.objects[o].y=pd._graph.objects[o].args[3] *zoom;	
 		    pd._graph.objects[o].title=set_title(pd._graph.objects[o]);
 		    pd._graph.objects[o].id=_.uniqueId('guid_')
         html+=makeobject(pd._graph.objects[o]);
@@ -106,8 +122,11 @@ function makeobject(pdobj){
    if(pdobj.type=="tgl"){ 
     return new EJS({url: './templates/checkbox.ejs'}).render({obj:pdobj});
    }
-    if(pdobj.type=="msg"){ 
+   if(pdobj.type=="msg"){ 
     return new EJS({url: './templates/message.ejs'}).render({obj:pdobj});
+   }
+   if(pdobj.type=="vsl" || pdobj.type=="hsl"){ 
+    return new EJS({url: './templates/slider.ejs'}).render({obj:pdobj});
    }
    //generic object
   return new EJS({url: './templates/normal_object.ejs'}).render({obj:pdobj});
@@ -117,6 +136,9 @@ function makeobject(pdobj){
 //what to actually display
 function set_title(pdobj){
   if(pdobj.type=="msg"){
+    return pdobj.title=pdobj.args.slice(4, pdobj.args.length).join(" ");  
+  }
+  if(pdobj.type=="metro"){
     return pdobj.title=pdobj.args.slice(4, pdobj.args.length).join(" ");  
   }
   return pdobj.args[4];
@@ -168,14 +190,9 @@ function findbyid(id){
   <Td>
     <br/>  
     <b>tests:</b>
-    <div class="demo">osc</div>
-    <div class="demo">noise</div>
-    <div class="demo">tgl</div>
-    <div class="demo">metro</div>
-    <div class="demo">metros</div>
-    <div class="demo">loadbang</div>
-    <div class="demo">moses</div>
-    <div class="demo">mtof</div>
+    <div id="showdemos">
+
+    </div>
   </td>
 </tr>
 <Tr>
